@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Atmel Studio Solution File, Format Version 11.00
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "Modbus_Hypothron", "Modbus_Hypothron\Modbus_Hypothron.cproj", "{90334A36-451F-484D-89F4-0A687B341FBB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{90334A36-451F-484D-89F4-0A687B341FBB}.Debug|AVR.ActiveCfg = Debug|AVR
+		{90334A36-451F-484D-89F4-0A687B341FBB}.Debug|AVR.Build.0 = Debug|AVR
+		{90334A36-451F-484D-89F4-0A687B341FBB}.Release|AVR.ActiveCfg = Release|AVR
+		{90334A36-451F-484D-89F4-0A687B341FBB}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
