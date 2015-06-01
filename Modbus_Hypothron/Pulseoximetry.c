@@ -46,19 +46,18 @@ void PulseoximetryInit()
 	TCC1.CTRLA = TC_CLKSEL_DIV1_gc;
 	TCC1.CTRLB = TC1_CCBEN_bm | TC_WGMODE_SS_gc;
 	TCC1.PER = 0x4FFF;
-	TCC1.CCB = 0x2FFF;	
-	//PORTC.OUT = 1 << 5;
+	TCC1.CCB = 0x2FFF;
 	
 	//Таймер опроса АЦП пульсоксиметра - 100Гц
 	TCD0.CTRLA = TC_CLKSEL_DIV256_gc;
 	TCD0.CTRLB = TC_WGMODE_NORMAL_gc;
-	TCD0.PER = 2500;//1250;
+	TCD0.PER = 1250;//1250;
 	TCD0.INTCTRLA = TC_OVFINTLVL_HI_gc;
 	
 	//Рассчет коэффициентов фильтра Баттерворта ФПГ
 	float w = tan((M_PI * Pulseox_fc) / Pulseox_fs);
 	float c = 1.0 + 2 * cos(M_PI / 4.0) * w + w * w;
-	pulseoxButterworthSettings.b2 = 1.0 + 2.0 * cos(M_PI / 4.0) * w + w * w;
+	pulseoxButterworthSettings.b2 = (1.0 - 2.0 * cos(M_PI / 4.0) * w + w * w) / c;
 	pulseoxButterworthSettings.b1 = (2.0 * (w * w - 1)) / c;
 	pulseoxButterworthSettings.a2 = (w * w) / c;
 	pulseoxButterworthSettings.a0 = pulseoxButterworthSettings.a2;
@@ -81,6 +80,11 @@ void PulseoximetryLoop()
 		arrayRDC[i] = arrayRDC[i + 1];
 	}
 	
+	for (uint8_t i = 0; i < FILTER_POINT_COUNT - 1; i++)
+	{
+		arrayFilter[i] = arrayFilter[i + 1];
+	}
+	
 	//Заносим в буфферы последние значения
 	arrayIRAC[POINT_COUNT - 1] = Measurements[ADC_IR_AC].value;
 	arrayIRDC[POINT_COUNT - 1] = Measurements[ADC_IR_DC].value;
@@ -96,26 +100,27 @@ void PulseoximetryLoop()
 	
 	for (uint8_t i = 0; i < 2; i++)
 	{
-		tmpY[i] = arrayFilter[POINT_COUNT - 2 - i];
+		tmpY[i] = arrayFilter[FILTER_POINT_COUNT - 2 - i];
 	}
 	
-	//arrayFilter[POINT_COUNT - 1] = Butterworth2Filter(tmpX, tmpY,pulseoxButterworthSettings);
-	//arrayFilter[POINT_COUNT - 1] = LowPassFilter(Butterworth2Filter(tmpX, tmpY,pulseoxButterworthSettings), arrayFilter[POINT_COUNT - 2], Pulseox_fs, Pulseox_RC);
-	arrayFilter[POINT_COUNT - 1] = LowPassFilter(Measurements[ADC_IR_AC].value, arrayFilter[POINT_COUNT - 2], Pulseox_fs, Pulseox_RC);
-	Measurements[HR_AVG].value = arrayFilter[POINT_COUNT - 1];
+	arrayFilter[FILTER_POINT_COUNT - 1] = LowPassFilter(Butterworth2Filter(tmpX, tmpY,pulseoxButterworthSettings), arrayFilter[FILTER_POINT_COUNT - 2], Pulseox_fs, Pulseox_RC);
 	
-	if (arrayFilter[POINT_COUNT - 1] < arrayFilter[POINT_COUNT - 2] && arrayFilter[POINT_COUNT - 2] > arrayFilter[POINT_COUNT - 3])
+	if (arrayFilter[FILTER_POINT_COUNT - 1] < arrayFilter[FILTER_POINT_COUNT - 2] && arrayFilter[FILTER_POINT_COUNT - 2] > arrayFilter[FILTER_POINT_COUNT - 3])
+	{		
+		if (HR_Min < (float)((Pulseox_fs / loopCounter) * 60.0) && HR_Max > (float)((Pulseox_fs / loopCounter) * 60.0))
+		{
+			Measurements[HR].value = (float)((Pulseox_fs / loopCounter) * 60.0);
+		}
+		loopCounter = 0;
+	}
+	
+	if (arrayFilter[FILTER_POINT_COUNT - 1] < arrayFilter[FILTER_POINT_COUNT - 2])
 	{
-		if (hrState)
-		{
-			Measurements[HR].value = (float)loopCounter;
-			hrState = 0;
-		}
-		else
-		{
-			hrState = 1;
-			loopCounter = 0;
-		}
+		Measurements[HR_AVG].value = 0.5;
+	} 
+	else
+	{
+		Measurements[HR_AVG].value = 0.0;
 	}
 	
 	loopCounter++;
@@ -211,7 +216,7 @@ void PulseoximetryHugeCalculation()
 	Measurements[SPO2].value = R * Measurements[K_SPO2].value + Measurements[B_SPO2].value;
 }
 
-ISR (TCD0_OVF_vect)
+ISR (TCD0_OVF_vect, ISR_NOBLOCK)
 {
 	PulseoximetryLoop();
 	/*

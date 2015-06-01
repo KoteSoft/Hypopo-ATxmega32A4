@@ -132,18 +132,17 @@ xMBPortSerialGetByte( CHAR * pucByte )
     return TRUE;
 }
 
-ISR( USARTC1_DRE_vect )
+ISR( USARTC1_DRE_vect, ISR_BLOCK)
 {
     pxMBFrameCBTransmitterEmpty(  );
 }
 
-ISR( USARTC1_RXC_vect )
+ISR( USARTC1_RXC_vect, ISR_BLOCK)
 {
 	pxMBFrameCBByteReceived(  );
 }
 
 #ifdef RTS_ENABLE
-//ISR( USART_TXC_vect )
 ISR(USARTC1_TXC_vect)
 {
     RTS_LOW;

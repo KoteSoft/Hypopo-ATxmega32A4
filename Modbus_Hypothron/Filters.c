@@ -24,6 +24,6 @@ float ComplementaryFilter(float x1, float x2, float k)
 }
 
 float Butterworth2Filter(float xi[3], float yi[2], struct butterwrthParams_t params)
-{
-	return params.a0 * xi[0] + params.a1*xi[1] + params.a2*xi[2] - params.b1*yi[1] - params.b2 * yi[2];
+{	
+	return params.a0 * xi[0] + params.a1 * xi[1] + params.a2 * xi[2] - params.b1 * yi[0] - params.b2 * yi[1];	
 }
