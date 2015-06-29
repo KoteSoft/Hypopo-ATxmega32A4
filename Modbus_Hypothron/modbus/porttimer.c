@@ -95,7 +95,7 @@ vMBPortTimersDisable(  )
 	TCD1.INTFLAGS |= 4;
 }
 
-ISR( TCD1_CCA_vect, ISR_NOBLOCK )
+ISR( TCD1_CCA_vect)
 {
     ( void )pxMBPortCBTimerExpired(  );
 }

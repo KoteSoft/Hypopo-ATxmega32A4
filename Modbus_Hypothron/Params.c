@@ -92,7 +92,7 @@ void ModbusEEPROMLoader()
 	
 	if (sond_flag)
 	{
-		Sound_On();
+		//Sound_On();
 		_delay_ms(100);
 		Sound_Off();
 	}

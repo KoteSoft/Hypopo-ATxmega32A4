@@ -19,7 +19,7 @@ volatile uint32_t overflows;	//необходимое количество пе�
 
 void Timer1_Tick();	
 
-ISR (TCE0_OVF_vect, ISR_NOBLOCK)
+ISR (TCE0_OVF_vect)
 {	
 	Timer1_Tick();	
 }

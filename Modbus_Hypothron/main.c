@@ -63,8 +63,6 @@ int main(void)
 		HugeCalculations();
 		/*Итерация Modbus*/
 		eMBPoll();	
-		DACB.CH0DATA = savedParameters[K_RIR].array[0];
-		DACB.CH1DATA = savedParameters[K_RIR].array[1];
 	}
 	
 }
