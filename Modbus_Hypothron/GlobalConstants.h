@@ -24,5 +24,8 @@ extern const float HR_Max;
 extern const float Pulseox_fs; //Частота выборки данных пульсоксиметра
 extern const float Pulseox_fc; //Частота среза данных пульсоксиметра
 extern const float Pulseox_RC;
+extern const float K_IR;
+extern const float SpO2_K; 
+extern const float SpO2_B;
 
 #endif /* GLOBALCONSTANTS_H_ */

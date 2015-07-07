@@ -51,7 +51,7 @@ int main(void)
 	/*Загружаем в Holding Registers и в массив параметров значения из EEPROM*/
 	ModbusInitValues();
 	
-	Sound_StartMusic();
+	//Sound_StartMusic();
 	
 	while(1)
 	{

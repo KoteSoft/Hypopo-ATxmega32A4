@@ -12,13 +12,12 @@
 #include "Filters.h"
 #include <stddef.h>
 
-#define POINT_COUNT 10
-#define FILTER_POINT_COUNT 5
-#define LOOP_PRESCALLER
+#define POINT_COUNT 60			//Размер буфферов пульсоксиметрии
+#define FILTER_POINT_COUNT 5	//Размер буффера фильтрованной ФПГ
 #define ADC_R_AC ADC6
 #define ADC_IR_AC ADC4
-#define ADC_R_DC ADC5
-#define ADC_IR_DC ADC3
+#define ADC_R_DC ADC3
+#define ADC_IR_DC ADC5
 
 float arrayIRAC[POINT_COUNT];
 float arrayIRDC[POINT_COUNT];
@@ -67,47 +66,49 @@ void PulseoximetryInit()
 	pulseoxButterworthSettings.a1 = 2 * pulseoxButterworthSettings.a0;
 }
 
-float Iaciravg;
-uint8_t t = 0;
-uint16_t loopCounter = 0;
-uint8_t hrState = 0;
+int8_t pointIndex = 0;		//Индекс текущего перезаписываемого элемента буфферов пульсоксиметрии
+uint16_t loopCounter = 0;	//Счетчик итераций пульсоксиметрии для расчета периодов ЧСС
 
 void PulseoximetryLoop()
 {
-	//Сдвигаем четыре буффера пульсоксиметрии на 1
-	for(uint8_t i = 0; i < POINT_COUNT - 1; i++)
-	{
-		arrayIRAC[i] = arrayIRAC[i + 1];
-		arrayIRDC[i] = arrayIRDC[i + 1];
-		//arrayRAC[i] = arrayRAC[i + 1];
-		arrayRDC[i] = arrayRDC[i + 1];
-	}
-	
+	//Сдвигаем буффер фильтрованной ФПГ
 	for (uint8_t i = 0; i < FILTER_POINT_COUNT - 1; i++)
 	{
 		arrayFilter[i] = arrayFilter[i + 1];
+	}	
+	
+	if (pointIndex >= POINT_COUNT)
+	{
+		pointIndex = 0;
 	}
 	
 	//Заносим в буфферы последние значения
-	arrayIRAC[POINT_COUNT - 1] = Measurements[ADC_IR_AC].value;
-	arrayIRDC[POINT_COUNT - 1] = Measurements[ADC_IR_DC].value;
-	//arrayRAC[POINT_COUNT - 1] = Measurements[ADC_R_AC].value;
-	arrayRDC[POINT_COUNT - 1] = Measurements[ADC_R_DC].value;	
-	
+	arrayIRAC[pointIndex] = Measurements[ADC_IR_AC].value;
+	arrayIRDC[pointIndex] = Measurements[ADC_IR_DC].value;
+	arrayRDC[pointIndex] = Measurements[ADC_R_DC].value;
+		
 	float tmpX[3], tmpY[2];
 	
 	for (uint8_t i = 0; i < 3; i++)
 	{
-		tmpX[i] = arrayIRAC[POINT_COUNT - 1 - i];
+		if ((int8_t)pointIndex - (int8_t)i < 0)
+		{
+			tmpX[i] = arrayIRAC[POINT_COUNT - 1 - (i - pointIndex)];
+		}
+		else
+		{
+			tmpX[i] = arrayIRAC[pointIndex - i];
+		}
 	}
-	
+		
 	for (uint8_t i = 0; i < 2; i++)
 	{
 		tmpY[i] = arrayFilter[FILTER_POINT_COUNT - 2 - i];
 	}
 	
+	//Расчитываем последнее значение фильтрованной ФПГ
 	arrayFilter[FILTER_POINT_COUNT - 1] = LowPassFilter(Butterworth2Filter(tmpX, tmpY,pulseoxButterworthSettings), arrayFilter[FILTER_POINT_COUNT - 2], Pulseox_fs, Pulseox_RC);
-	
+	//Расчет ЧСС
 	if (arrayFilter[FILTER_POINT_COUNT - 1] < arrayFilter[FILTER_POINT_COUNT - 2] && arrayFilter[FILTER_POINT_COUNT - 2] > arrayFilter[FILTER_POINT_COUNT - 3])
 	{		
 		if (HR_Min < (float)((Pulseox_fs / loopCounter) * 60.0) && HR_Max > (float)((Pulseox_fs / loopCounter) * 60.0))
@@ -115,9 +116,10 @@ void PulseoximetryLoop()
 			Measurements[HR].value = (float)((Pulseox_fs / loopCounter) * 60.0);
 		}
 		loopCounter = 0;
-	}
+	}	
 	
 	loopCounter++;
+	pointIndex++;
 }
 
 void PulseoximetryHugeCalculation()
@@ -128,92 +130,26 @@ void PulseoximetryHugeCalculation()
 	float tempArrayIRDC[POINT_COUNT];
 	//float tempArrayRAC[POINT_COUNT];
 	float tempArrayRDC[POINT_COUNT];
-	                                                                                                                           
+	
+	//Создаем копии буфферов пульсоксиметрии для предотвращения их перезаписи во время расчета                                                                                                                           
 	for(uint8_t i = 0; i < POINT_COUNT; i++)
 	{
 		//tempArrayIRAC[i] = arrayIRAC[i];
-		tempArrayIRDC[i] = arrayIRDC[i];
+		tempArrayIRDC[i] = arrayIRDC[i] * K_IR;
 		//tempArrayRAC[i] = arrayRAC[i];
 		tempArrayRDC[i] = arrayRDC[i];
 	}
 	
-	/*
-	tempMin = 10.0;
-	tempMax = 0.0;
-	for (uint8_t i = 0; i < POINT_COUNT; i++)
-	{
-		if (tempArrayIRAC[i] < tempMin)
-			tempMin = tempArrayIRAC[i];
-		if (tempArrayIRAC[i] > tempMax)
-			tempMax = tempArrayIRAC[i];
-	}
-	Iacir = tempMax - tempMin;
-	Iaciravg = (tempMin + tempMax) / 2.0 - 0.3 * Iacir;
-	
-	tempMin = 10.0;
-	tempMax = 0.0;
-	for (uint8_t i = 0; i < POINT_COUNT; i++)
-	{
-		if (tempArrayRAC[i] < tempMin)
-			tempMin = tempArrayRAC[i];
-		if (tempArrayRAC[i] > tempMax)
-			tempMax = tempArrayRAC[i];
-	}
-	Iacr = tempMax - tempMin;
-	
-	tempSumm = 0.0;
-	for (uint8_t i = 0; i < POINT_COUNT; i++)
-	{
-		tempSumm += tempArrayIRDC[i];
-	}
-	Idciravg = tempSumm / (double)POINT_COUNT;
-	
-	tempSumm = 0.0;
-	for (uint8_t i = 0; i < POINT_COUNT; i++)
-	{
-		tempSumm += tempArrayRDC[i];
-	}
-	Idcravg = tempSumm / (double)POINT_COUNT;
-	
-	tempSumm = 0.0;
-	for (uint8_t i = 0; i < POINT_COUNT; i++)
-	{
-		tempSumm += tempArrayIRDC[i] * tempArrayIRDC[i];
-	}
-	Idcir = sqrt(tempSumm / (double)POINT_COUNT);
-	
-	tempSumm = 0.0;
-	for (uint8_t i = 0; i < POINT_COUNT; i++)
-	{
-		tempSumm += tempArrayRDC[i] * tempArrayRDC[i];
-	}
-	Idcr = sqrt(tempSumm / (double)POINT_COUNT);
-	
-	tempSumm = 0.0;
-	for (uint8_t i = 0; i < POINT_COUNT; i++)
-	{
-		tempSumm += (tempArrayIRDC[i] - Idciravg) * (tempArrayIRDC[i] - Idciravg);
-	}
-	Idcirdev = sqrt(tempSumm / (double)POINT_COUNT);
-	
-	tempSumm = 0.0;
-	for (uint8_t i = 0; i < POINT_COUNT; i++)
-	{
-		tempSumm += (tempArrayRDC[i] - Idcravg) * (tempArrayRDC[i] - Idcravg);
-	}
-	Idcrdev = sqrt(tempSumm / (double)POINT_COUNT);
-	*/
 	tempMin = 10.0;
 	tempMax = 0.0;
 	for (uint8_t i = 0; i < POINT_COUNT; i++)
 	{
 		if (tempArrayIRDC[i] < tempMin)
-		tempMin = tempArrayIRDC[i];
+			tempMin = tempArrayIRDC[i];
 		if (tempArrayIRDC[i] > tempMax)
-		tempMax = tempArrayIRDC[i];
+			tempMax = tempArrayIRDC[i];
 	}
 	Iacir = tempMax - tempMin;
-	Iaciravg = (tempMin + tempMax) / 2.0 - 0.3 * Iacir;
 	
 	tempMin = 10.0;
 	tempMax = 0.0;
@@ -268,23 +204,11 @@ void PulseoximetryHugeCalculation()
 	}
 	Idcrdev = sqrt(tempSumm / (double)POINT_COUNT);
 	
-	//Iacr /= R_Amp_Coeff;
-	//Iacir /= IR_Amp_Coeff;
-	Iacir /= Measurements[K_RIR].value;
-	/*
 	R = (Iacr / Idcr) * (Idcir / Iacir);
-	if (R > 0.5 && R < 1.0)
+	if (R > 0.94 && R < 2.0)
 	{
-		Measurements[SPO2_AVG].value = R;
-		
-		Measurements[HR_DEV].value = Iacr;
-		Measurements[SPO2_DEV].value = Iacir;
-		Measurements[HR_START].value = Idcr;
-		Measurements[F_BR_START].value = Idcir;
-		
-		Measurements[SPO2].value = R * savedParameters[K_SPO2].value + savedParameters[B_SPO2].value;
+		Measurements[SPO2].value = R * SpO2_K + SpO2_B;
 	}
-	*/
 }
 
 ISR (TCD0_OVF_vect)
