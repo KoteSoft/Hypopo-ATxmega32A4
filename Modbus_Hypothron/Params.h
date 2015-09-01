@@ -83,6 +83,7 @@ typedef enum
 	ALARM,		//Код тревоги
 	DAMAGE,		//Код аварийного завершения сеанса
 	DIAG,		//Код заваршения сеанса диагностики
+	O2_K,		//расчитанный коеффициент усиления для датчика кислорода	
 	measurements_list_SIZE
 }measurements_list;
 
@@ -118,16 +119,16 @@ typedef enum
 	EMF0,		//ЕДС0 датчика СО2
 	DELTA_EMF,	//Дельта-ЕДС датчика СО2
 	K_AMP,		//Коэффициент усиления усилителя СО2
-	K_CE,
+	K_CE,		
 	K_RIR,		
 	K_SPO2,
 	B_SPO2,
+	SPO2_DEV_LIMIT,
 	saved_parameters_list_SIZE
 }saved_parameters_list;
 
 typedef enum
 {
-	O2_K,	//расчитанный коеффициент усиления для датчика кислорода
 	O2_SET,	//заднное для поддержания содержание кислорода в контуре
 	AGE,	//Возраст пациента
 	nonsaved_parameters_list_SIZE
@@ -142,6 +143,7 @@ typedef enum
 	DEVICE_PROCEDURE_ALARM_STATE,	//Сеанс продолжается, сработала тревога
 	DEVICE_DIAGNOSTIC_END_STATE,	//Завершен сеанс диагностики
 	DEVICE_PROCEDURE_DAMAGE_STATE,	//Сеанс завершен системой безопасности
+	DEVICE_ERROR_STATE,				//Ошибка или неисправность аппарата
 	device_states_list_size
 }device_states_list;
 
@@ -149,9 +151,9 @@ extern parametr_t Measurements[measurements_list_SIZE];
 extern parametr_t savedParameters[saved_parameters_list_SIZE];
 extern parametr_t nonsavedParameters[nonsaved_parameters_list_SIZE];
 
-void ModbusLoader();
-void ModbusSaver();
-void ModbusInitValues();
+void ModbusLoader();	//Выводим телеметрию и т.п. в Inputs
+void ModbusSaver();		//Обрабатываем значения HoldingRegisters
+void ModbusInitValues();	
 void HugeCalculations();
 
 #endif /* PARAMS_H_ */

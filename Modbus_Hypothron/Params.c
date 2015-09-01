@@ -15,17 +15,14 @@
 #include "GlobalConstants.h"
 #include "Pulseoximetry.h"
 
-//curvepair_t Curve1[Curve_Size];
-//curvepair_t Curve2[Curve_Size];
 parametr_t Measurements[measurements_list_SIZE];
 parametr_t savedParameters[saved_parameters_list_SIZE];
 parametr_t nonsavedParameters[nonsaved_parameters_list_SIZE];
 
 void ModbusEEPROMLoader();
+uint8_t MbComm(uint16_t code); //Выполнение команд, полученных через регистр команд Modbus
 
-uint8_t MbComm(uint16_t code);
-
-//Выводим телеметрию и т.п. в Inputs
+/*Выводим телеметрию и т.п. в Inputs*/
 void ModbusLoader()
 {
 	int i;
@@ -36,21 +33,18 @@ void ModbusLoader()
 	}	
 }
 
-//Обрабатываем значения HoldingRegisters
+/*Обрабатываем значения HoldingRegisters*/
 void ModbusSaver()
 {
 	/*Обработчики несохраняемых регистров прямого доступа*/
-	//parametr_t temp;
 	nonsavedParameters[O2_SET].array[0] = usRegHoldingBuf[O2_SET * 2];
 	nonsavedParameters[O2_SET].array[1] = usRegHoldingBuf[O2_SET * 2 + 1];
 	
 	MbComm(usRegHoldingBuf[MB_COMMAND]);
-	
-	/*Сохранение новых значений регистров*/
 	ModbusEEPROMLoader();
 }
 
-
+/*Считывание EEPROM и загрузка в Holding-регистры*/
 void ModbusInitValues()
 {
 	for(uint8_t i = 0; i < saved_parameters_list_SIZE; i++)
@@ -65,6 +59,7 @@ void ModbusInitValues()
 	}
 }
 
+/*Сравнение двух 64-битных чисел в виде четырех 32-битных переменных*/
 bool Uint32Comparrer(uint32_t A1, uint32_t A2, uint32_t B1, uint32_t B2)
 {
 	if (A1 != B1 || A2 != B2)
@@ -75,9 +70,10 @@ bool Uint32Comparrer(uint32_t A1, uint32_t A2, uint32_t B1, uint32_t B2)
 	return true;
 }
 
+/*Запись измененных значений в EEPROM*/
 void ModbusEEPROMLoader()
 {
-	uint8_t sond_flag = 0;
+	uint8_t sond_flag = 0;	//Произошла хотябы одна запись в EEPROM
 	
 	for (uint8_t i = 0; i < saved_parameters_list_SIZE; i++)
 	{
@@ -92,14 +88,14 @@ void ModbusEEPROMLoader()
 	
 	if (sond_flag)
 	{
-		//Sound_On();
-		_delay_ms(100);
-		Sound_Off();
+		/*Сигнализация записи в EEPROM*/
+		Sound_TimeOn(100);
 	}
 	
 	ModbusInitValues();
 }
 
+/*Выполнение команд, полученных через регистр команд Modbus*/
 uint8_t MbComm(uint16_t code)
 {
 	usRegHoldingBuf[MB_COMMAND] = 0;
@@ -120,8 +116,7 @@ uint8_t MbComm(uint16_t code)
 
 void HugeCalculations()
 {
-	Measurements[O2].value = Measurements[ADC4].value * nonsavedParameters[O2_K].value;
+	Measurements[O2].value = Measurements[ADC1].value * Measurements[O2_K].value;
 	Measurements[CO2].value = ((pow(10.0, ((Measurements[ADC2].value / savedParameters[K_AMP].value - savedParameters[EMF0].value) / savedParameters[DELTA_EMF].value) * (log10(400.0) - log10(1000.0)) + log10(400.0)))/10000);
 	FlowCalc();
-	PulseoximetryHugeCalculation();
 }

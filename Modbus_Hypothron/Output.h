@@ -9,8 +9,9 @@
 #ifndef OUTPUT_H_
 #define OUTPUT_H_
 
-void Sound_On();
-void Sound_Off();
 void Sound_StartMusic();
+void Sound_TimeOn(uint16_t time_ms);
+void Sound_Loop();
+
 
 #endif /* OUTPUT_H_ */

@@ -15,9 +15,10 @@
 #include <avr/eeprom.h>
 #include "modbus/mb.h"
 #include "modbus/mbport.h"
+#include "Params.h"
 
 #define REG_INPUT_START 101	//100
-#define REG_INPUT_NREGS 60
+#define REG_INPUT_NREGS (measurements_list_SIZE + 1) * 2
 
 #define REG_HOLDING_START 1201	//1200
 #define REG_HOLDING_NREGS 340
@@ -26,7 +27,7 @@
 #define REG_COILS_SIZE      16
 
 #define MODBUS_UART USARTC1
-#define UART_BAUD_RATE          9600
+#define UART_BAUD_RATE          25600
 #define UART_BAUD_CALC(UART_BAUD_RATE,F_OSC) \
 ( ( F_OSC ) / ( ( UART_BAUD_RATE ) * 16UL ) - 1 )
 

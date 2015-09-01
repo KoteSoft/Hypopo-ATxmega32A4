@@ -13,6 +13,7 @@
 #include "Flow.h"
 #include "Fan.h"
 #include <stdint.h>
+#include "Output.h"
 
 uint64_t loops;	//количество тактов в интервале	
 volatile uint32_t overflows;	//необходимое количество переполнений таймера
@@ -35,6 +36,7 @@ uint8_t Timer1_Init(uint32_t interval)
 
 void Timer1_Tick()
 {
+	Sound_Loop();
 	fanTimer++;
 	if (fanTimer > (uint16_t)savedParameters[FAN_PID_T].value) //10sec
 	{

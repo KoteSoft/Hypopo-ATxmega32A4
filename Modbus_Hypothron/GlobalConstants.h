@@ -27,5 +27,7 @@ extern const float Pulseox_RC;
 extern const float K_IR;
 extern const float SpO2_K; 
 extern const float SpO2_B;
-
+extern const float hr_dev_limit;
+extern const float spo2_dev_limit;
+extern const float flow_divider;
 #endif /* GLOBALCONSTANTS_H_ */

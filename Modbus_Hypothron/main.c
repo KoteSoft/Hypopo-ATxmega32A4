@@ -51,7 +51,7 @@ int main(void)
 	/*Загружаем в Holding Registers и в массив параметров значения из EEPROM*/
 	ModbusInitValues();
 	
-	//Sound_StartMusic();
+	Sound_StartMusic();
 	
 	while(1)
 	{
@@ -59,8 +59,9 @@ int main(void)
 		ModbusLoader();
 		/*Актуализируем значения параметров в соответствии со значениями Holding Registers*/
 		ModbusSaver();
-		//ADC_Poll();
-		HugeCalculations();
+		HugeCalculations();		
+		PulseoximetryHugeCalculation();
+		HeartRateHugeCalculation();
 		/*Итерация Modbus*/
 		eMBPoll();	
 	}

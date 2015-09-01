@@ -29,16 +29,19 @@ float OutCalc(float p)
 	
 	if (p < 0.0)
 	{
-		temp = -savedParameters[K_CE].value * savedParameters[CE].value * sqrt(2 * Rho * (-p) * savedParameters[CE].value);
+		//temp = -savedParameters[K_CE].value * savedParameters[CE].value * sqrt(2 * Rho * (-p) * savedParameters[CE].value);
+		temp = -1.;
 	} 
 	else
-		temp = savedParameters[K_CE].value * savedParameters[CE].value * sqrt(2 * Rho * p * savedParameters[CE].value);
-	return ModifyLowPassFilter(temp, Qprev2, savedParameters[DT_F2].value, savedParameters[RC_F2].value, savedParameters[K_F2].value);	
+		//temp = savedParameters[K_CE].value * savedParameters[CE].value * sqrt(2 * Rho * p * savedParameters[CE].value);
+		temp = 0.294967 * exp(1.29301 * p) / 60.0;// *0.8695652;
+	return temp;
+	//return ModifyLowPassFilter(temp, Qprev2, savedParameters[DT_F2].value, savedParameters[RC_F2].value, savedParameters[K_F2].value);	
 }
 
 void FlowCalc()
 {
-	Measurements[Flow2].value = OutCalc(Measurements[ADC0].value-U0);
+	Measurements[Flow2].value = OutCalc(Measurements[ADC0].value * flow_divider - U0);
 	
 	if (fabs(Measurements[Flow2].value) > savedParameters[SWBR_F2].value)
 	{
@@ -49,3 +52,4 @@ void FlowCalc()
 		Measurements[FlowT].value = Measurements[Flow1].value;
 	}
 }
+

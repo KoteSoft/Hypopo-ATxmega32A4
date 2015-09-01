@@ -11,6 +11,7 @@
 
 void PulseoximetryInit();
 void PulseoximetryHugeCalculation();
+void HeartRateHugeCalculation();
 
 
 #endif /* PULSEOXIMETRY_H_ */

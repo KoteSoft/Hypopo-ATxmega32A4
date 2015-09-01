@@ -17,7 +17,9 @@ void coreInit()
 	// If you want to disable RC2M
 	OSC.CTRL&=(~OSC_RC2MEN_bm);
 	
+	//Порты
 	PORTC.DIR = 0b10111111;
 	
-	PMIC.CTRL = PMIC_HILVLEN_bm;
+	//Прерывания
+	PMIC.CTRL = PMIC_HILVLEN_bm | PMIC_LOLVLEN_bm;
 }
