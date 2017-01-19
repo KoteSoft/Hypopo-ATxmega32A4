@@ -98,13 +98,14 @@ void Timer1_Tick()
 			if ((flowIntSum > savedParameters[BR_V_MIN].value) && (flowIntSum < savedParameters[BR_V_MAX].value))
 			{
 				Measurements[Vin].value = flowIntSum;
+				Measurements[Vout].value = flowIntSum;
 			}
 		} 
 		else	//закончился выдох
 		{
 			if ((-flowIntSum > savedParameters[BR_V_MIN].value) && (-flowIntSum < savedParameters[BR_V_MAX].value))
 			{
-				Measurements[Vout].value = flowIntSum;
+				//Measurements[Vout].value = flowIntSum;
 			
 			
 				if ((breathTimer > savedParameters[BR_T_MIN].value) && (breathTimer < savedParameters[BR_T_MAX].value)) //по оканчании вдоха, измеряем период дыхания
