@@ -109,7 +109,7 @@ void Timer1_Tick()
 			
 				if ((breathTimer > savedParameters[BR_T_MIN].value) && (breathTimer < savedParameters[BR_T_MAX].value)) //по оканчании вдоха, измеряем период дыхания
 				{				
-					Measurements[Fbreth].value = 60.0 / ((float)breathTimer / 100.0);
+					Measurements[Fbreth].value = 2 * 60.0 / ((float)breathTimer / (1000.0 * H_Step));
 				}
 				breathTimer = 0;
 			}

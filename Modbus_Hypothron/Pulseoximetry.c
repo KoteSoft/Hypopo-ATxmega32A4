@@ -11,6 +11,7 @@
 #include "Params.h"
 #include "Filters.h"
 #include <stddef.h>
+#include "Tonometry.h"
 
 #define POINT_COUNT 60			//Размер буфферов пульсоксиметрии
 #define FILTER_POINT_COUNT 5	//Размер буффера фильтрованной ФПГ
@@ -240,4 +241,5 @@ void HeartRateHugeCalculation()
 ISR (TCD0_OVF_vect)
 {
 	PulseoximetryLoop();
+	nibpTimerLoop();
 }

@@ -17,7 +17,7 @@ void ADC_Init()
 {
 	ADCA.CTRLA = 1 << ADC_ENABLE_bp | 1 << ADC_CH0START_bm;
 	ADCA.CTRLB = 0 << ADC_CONMODE_bp | 0 << ADC_FREERUN_bp | ADC_RESOLUTION_12BIT_gc;
-	ADCA.REFCTRL = ADC_REFSEL_VCC_gc;
+	ADCA.REFCTRL = ADC_REFSEL_INTVCC_gc;
 	ADCA.EVCTRL = ADC_SWEEP_0_gc | ADC_EVSEL_0123_gc;
 	ADCA.PRESCALER = ADC_PRESCALER_DIV512_gc;
 	ADCA.CAL = 0x0444;
@@ -46,7 +46,7 @@ ISR (ADCA_CH0_vect)
 {
 	if (ADCMuxFlag == 0)
 	{
-		Measurements[ADC0 + ADCMuxFlag].value = (ADCA.CH0.RES * U_ref) / ADC_resolution - U_ref * 0.05 + savedParameters[OFF_F1].value;
+		Measurements[ADC0 + ADCMuxFlag].value = ((ADCA.CH0.RES * U_ref) / ADC_resolution - U_ref * 0.05 + savedParameters[OFF_F1].value) * savedParameters[FLOW_DIVIDER].value; //(savedParameters[FLOW_DIVIDER].value * ((ADCA.CH0.RES * U_ref) / ADC_resolution - U_ref * 0.05) + savedParameters[OFF_F1].value) * savedParameters[RATIO_COEFF].value;
 	} 
 	else
 	{

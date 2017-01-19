@@ -21,7 +21,7 @@
 #define REG_INPUT_NREGS (measurements_list_SIZE + 1) * 2
 
 #define REG_HOLDING_START 1201	//1200
-#define REG_HOLDING_NREGS 340
+#define REG_HOLDING_NREGS 350
 
 #define REG_COILS_START     10
 #define REG_COILS_SIZE      16

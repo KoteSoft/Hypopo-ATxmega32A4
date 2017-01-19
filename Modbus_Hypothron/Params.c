@@ -14,6 +14,7 @@
 #include "ADC.h"
 #include "GlobalConstants.h"
 #include "Pulseoximetry.h"
+#include "Tonometry.h"
 
 parametr_t Measurements[measurements_list_SIZE];
 parametr_t savedParameters[saved_parameters_list_SIZE];
@@ -37,8 +38,12 @@ void ModbusLoader()
 void ModbusSaver()
 {
 	/*Обработчики несохраняемых регистров прямого доступа*/
-	nonsavedParameters[O2_SET].array[0] = usRegHoldingBuf[O2_SET * 2];
-	nonsavedParameters[O2_SET].array[1] = usRegHoldingBuf[O2_SET * 2 + 1];
+	for (uint8_t i = 0; i < nonsaved_parameters_list_SIZE; i++)
+	{
+		nonsavedParameters[i].array[0] = usRegHoldingBuf[i * 2];
+		nonsavedParameters[i].array[1] = usRegHoldingBuf[i * 2 + 1];
+	}
+
 	
 	MbComm(usRegHoldingBuf[MB_COMMAND]);
 	ModbusEEPROMLoader();
@@ -102,13 +107,17 @@ uint8_t MbComm(uint16_t code)
 	switch (code)
 	{
 		case 0: 
-		return 0; 
+			return 0; 
 				
 		case 3:
-		return O2CoeffCalc();
+			return O2CoeffCalc();
+		
+		case 4:
+			nibpStartMeas();
+			return 0;
 		
 		default:
-		return 0;
+			return 0;
 	}
 	
 	return 0;
@@ -117,6 +126,16 @@ uint8_t MbComm(uint16_t code)
 void HugeCalculations()
 {
 	Measurements[O2].value = Measurements[ADC1].value * Measurements[O2_K].value;
+	
+	/*if (Measurements[ADC1].value * savedParameters[O2_KX].value + savedParameters[O2_BX].value < 21.0)
+	{
+		Measurements[O2].value = Measurements[ADC1].value * savedParameters[O2_KX].value + savedParameters[O2_BX].value;
+	} 
+	else
+	{
+		Measurements[O2].value = O2_in_air;
+	}*/
+	
 	Measurements[CO2].value = ((pow(10.0, ((Measurements[ADC2].value / savedParameters[K_AMP].value - savedParameters[EMF0].value) / savedParameters[DELTA_EMF].value) * (log10(400.0) - log10(1000.0)) + log10(400.0)))/10000);
 	FlowCalc();
 }

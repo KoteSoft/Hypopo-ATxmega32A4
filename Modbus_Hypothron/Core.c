@@ -19,6 +19,7 @@ void coreInit()
 	
 	//Порты
 	PORTC.DIR = 0b10111111;
+	PORTE.DIR = 0b00000011;
 	
 	//Прерывания
 	PMIC.CTRL = PMIC_HILVLEN_bm | PMIC_LOLVLEN_bm;
