@@ -22,6 +22,7 @@ TCE0 - FlowCalc
 #include "Fan.h"
 #include "Core.h"
 #include "Pulseoximetry.h"
+#include "MAX30102.h"
 
 USHORT   usRegInputBuf[REG_INPUT_NREGS];
 USHORT   usRegHoldingBuf[REG_HOLDING_NREGS];
@@ -40,7 +41,8 @@ int main(void)
 	ADC_Init();
 	Timer1_Init(H_Step);
 	PWM_Timer2_Init();	
-	PulseoximetryInit();
+	//PulseoximetryInit();
+	
 	
 	/*Настраиваем Modbus*/
 	eMBErrorCode eStatus = eMBInit( MB_RTU, 0x01, 0, UART_BAUD_RATE, MB_PAR_NONE );
@@ -52,7 +54,7 @@ int main(void)
 	ModbusInitValues();
 	
 	Sound_StartMusic();
-	
+	MAX30102_Init();
 	while(1)
 	{
 		/*Актуализируем значения Modbus-регистров в соответствии со значениями параметров*/
